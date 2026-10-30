@@ -1,6 +1,7 @@
 import csv
 import html
 import io
+import time
 from pathlib import Path
 
 import numpy as np
@@ -368,6 +369,242 @@ hr {
     outline-offset: 2px;
 }
 
+/* ---------- Loading panel ---------- */
+.loader-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 24px 28px 20px;
+    margin: 6px 0 18px;
+    box-shadow: 0 10px 28px rgba(23, 76, 70, 0.08);
+}
+
+.loader-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.loader-title {
+    color: var(--primary);
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: -0.3px;
+}
+
+.loader-detail {
+    color: var(--muted);
+    font-size: 13px;
+    margin-top: 3px;
+    overflow-wrap: anywhere;
+}
+
+.loader-percent {
+    color: var(--accent);
+    font-size: 28px;
+    font-weight: 800;
+    line-height: 1;
+}
+
+/* Little pond with a swimming fish and rising bubbles */
+.pond {
+    position: relative;
+    height: 68px;
+    margin: 18px 0 16px;
+    border-radius: 14px;
+    overflow: hidden;
+    background: linear-gradient(180deg, var(--secondary) 0%, #CBE3D7 100%);
+}
+
+.pond-wave {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 6px;
+    background: repeating-linear-gradient(
+        90deg,
+        rgba(47, 111, 94, 0.22) 0 14px,
+        rgba(47, 111, 94, 0.08) 14px 28px
+    );
+    animation: ripple 2.4s linear infinite;
+}
+
+.pond-fish {
+    position: absolute;
+    top: 16px;
+    left: 2%;
+    font-size: 34px;
+    line-height: 1;
+    animation: swim 6s ease-in-out infinite;
+}
+
+.bubble {
+    position: absolute;
+    bottom: -14px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.85);
+    background: rgba(255, 255, 255, 0.35);
+    animation: rise 3.4s ease-in infinite;
+}
+
+.bubble.b1 { left: 12%; width: 9px;  height: 9px;  animation-delay: 0s; }
+.bubble.b2 { left: 31%; width: 13px; height: 13px; animation-delay: 1.1s; }
+.bubble.b3 { left: 52%; width: 8px;  height: 8px;  animation-delay: 0.5s; }
+.bubble.b4 { left: 71%; width: 12px; height: 12px; animation-delay: 1.8s; }
+.bubble.b5 { left: 88%; width: 9px;  height: 9px;  animation-delay: 2.4s; }
+
+@keyframes swim {
+    0%   { left: 2%;                  transform: scaleX(-1) translateY(0); }
+    25%  {                            transform: scaleX(-1) translateY(-7px); }
+    48%  { left: calc(100% - 48px);   transform: scaleX(-1) translateY(0); }
+    52%  { left: calc(100% - 48px);   transform: scaleX(1)  translateY(0); }
+    75%  {                            transform: scaleX(1)  translateY(7px); }
+    100% { left: 2%;                  transform: scaleX(1)  translateY(0); }
+}
+
+@keyframes rise {
+    0%   { transform: translateY(0);     opacity: 0; }
+    15%  { opacity: 1; }
+    100% { transform: translateY(-86px); opacity: 0; }
+}
+
+@keyframes ripple {
+    from { background-position: 0 0; }
+    to   { background-position: 28px 0; }
+}
+
+/* Progress bar with a moving shine */
+.loader-track {
+    width: 100%;
+    height: 11px;
+    background: var(--secondary);
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+.loader-fill {
+    height: 11px;
+    border-radius: 20px;
+    background: linear-gradient(
+        90deg,
+        var(--primary-light) 0%,
+        #7CB89F 50%,
+        var(--primary-light) 100%
+    );
+    background-size: 200% 100%;
+    animation: shine 1.6s linear infinite;
+    transition: width 0.4s ease;
+}
+
+@keyframes shine {
+    from { background-position: 200% 0; }
+    to   { background-position: 0 0; }
+}
+
+/* Stage list */
+.loader-steps {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 22px;
+    margin-top: 16px;
+}
+
+.loader-step {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.loader-step.active { color: var(--primary); }
+.loader-step.done   { color: var(--ok); }
+
+.step-dot {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 800;
+    background: var(--secondary);
+    color: var(--muted);
+}
+
+.step-dot.done   { background: var(--ok-bg); color: var(--ok); }
+.step-dot.active {
+    background: var(--accent);
+    color: #FFFFFF;
+    animation: pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%   { box-shadow: 0 0 0 0 rgba(194, 84, 45, 0.45); }
+    70%  { box-shadow: 0 0 0 9px rgba(194, 84, 45, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(194, 84, 45, 0); }
+}
+
+/* Rotating tips (pure CSS, keeps moving while Python is busy) */
+.loader-tips {
+    position: relative;
+    height: 22px;
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px dashed var(--border);
+}
+
+.loader-tip {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 14px;
+    color: var(--muted);
+    font-size: 13px;
+    opacity: 0;
+    animation: tipcycle 15s ease-in-out infinite;
+}
+
+.loader-tip:nth-child(1) { animation-delay: 0s; }
+.loader-tip:nth-child(2) { animation-delay: 5s; }
+.loader-tip:nth-child(3) { animation-delay: 10s; }
+
+@keyframes tipcycle {
+    0%        { opacity: 0; transform: translateY(5px); }
+    6%, 30%   { opacity: 1; transform: translateY(0); }
+    36%, 100% { opacity: 0; transform: translateY(-5px); }
+}
+
+/* Result polish: bars grow in, numbers fade in */
+.conf-fill {
+    animation: growbar 0.9s ease-out;
+}
+
+@keyframes growbar {
+    from { width: 0; }
+}
+
+.conf-number, .result-name {
+    animation: fadeup 0.6s ease-out;
+}
+
+@keyframes fadeup {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .pond-fish, .pond-wave, .bubble, .loader-fill,
+    .step-dot.active, .conf-fill, .conf-number, .result-name {
+        animation: none !important;
+    }
+    .loader-tip:nth-child(1) { opacity: 1; animation: none !important; }
+}
+
 /* ---------- Mobile ---------- */
 @media (max-width: 640px) {
     .block-container {
@@ -508,10 +745,25 @@ def preprocess_image(uploaded_file):
     return image_array / 255.0
 
 
-def predict_images(image_arrays):
-    """Predict several images in one batch."""
-    batch = np.stack(image_arrays, axis=0)
-    predictions = model.predict(batch, verbose=0)
+PREDICT_BATCH_SIZE = 8
+
+
+def predict_images(image_arrays, on_progress=None):
+    """Predict images in small batches so the UI can show real progress.
+
+    on_progress(done, total) is called after every batch.
+    """
+    total = len(image_arrays)
+    outputs = []
+
+    for start in range(0, total, PREDICT_BATCH_SIZE):
+        chunk = np.stack(image_arrays[start:start + PREDICT_BATCH_SIZE], axis=0)
+        outputs.append(model.predict(chunk, verbose=0))
+
+        if on_progress:
+            on_progress(min(start + PREDICT_BATCH_SIZE, total), total)
+
+    predictions = np.concatenate(outputs, axis=0)
 
     results = []
 
@@ -539,6 +791,60 @@ def predict_images(image_arrays):
 # =====================================================================
 # 7. UI HELPERS
 # =====================================================================
+
+LOADER_STAGES = ["Preparing images", "Running the model", "Building results"]
+
+LOADER_TIPS = [
+    "💡 Tip: a side view with the whole fish visible gives the best results.",
+    "🐟 Did you know? Thailand is one of the original homes of the betta fish.",
+    "✨ Plakat comes from the Thai word for “biting fish”.",
+]
+
+
+def loader_html(stage, percent, detail=""):
+    """Animated loading panel. `stage` is the active step (0-based);
+    pass len(LOADER_STAGES) to mark every step as done."""
+    percent = max(0, min(100, percent))
+    finished = stage >= len(LOADER_STAGES)
+
+    steps = ""
+    for index, label in enumerate(LOADER_STAGES):
+        if index < stage:
+            state, icon = "done", "✓"
+        elif index == stage:
+            state, icon = "active", str(index + 1)
+        else:
+            state, icon = "", str(index + 1)
+
+        steps += (
+            f'<div class="loader-step {state}">'
+            f'<span class="step-dot {state}">{icon}</span>'
+            f'<span>{label}</span></div>'
+        )
+
+    title = "All done!" if finished else f"{LOADER_STAGES[stage]}..."
+    detail_html = f'<div class="loader-detail">{html.escape(detail)}</div>' if detail else ""
+    tips = "".join(f'<div class="loader-tip">{tip}</div>' for tip in LOADER_TIPS)
+
+    return (
+        '<div class="loader-card">'
+        '<div class="loader-head">'
+        f'<div><div class="loader-title">{title}</div>{detail_html}</div>'
+        f'<div class="loader-percent">{percent:.0f}%</div>'
+        '</div>'
+        '<div class="pond">'
+        '<div class="pond-wave"></div>'
+        '<span class="bubble b1"></span><span class="bubble b2"></span>'
+        '<span class="bubble b3"></span><span class="bubble b4"></span>'
+        '<span class="bubble b5"></span>'
+        '<div class="pond-fish">🐟</div>'
+        '</div>'
+        f'<div class="loader-track"><div class="loader-fill" style="width:{percent:.1f}%"></div></div>'
+        f'<div class="loader-steps">{steps}</div>'
+        f'<div class="loader-tips">{tips}</div>'
+        '</div>'
+    )
+
 
 def section(title, description=""):
     """Section heading that uses the CSS classes, so styling stays in one place."""
@@ -752,32 +1058,62 @@ if files_to_analyze:
 
 if files_to_analyze and analyze_clicked:
 
+    clear_results()   # drop old results so they never mix with the new run
+
     image_arrays = []
     valid_files = []
     failed_files = []
 
-    with st.spinner("Analyzing images..."):
+    total_files = len(files_to_analyze)
+    loader = st.empty()
 
-        for uploaded_file in files_to_analyze:
-            try:
-                image_arrays.append(preprocess_image(uploaded_file))
-                valid_files.append(uploaded_file)
-            except Exception as error:
-                failed_files.append({
-                    "Filename": uploaded_file.name,
-                    "Error": str(error),
-                })
+    # Progress plan: preparing 0-40%, model 40-92%, building results 92-100%
+    def show_loader(stage, percent, detail=""):
+        loader.markdown(loader_html(stage, percent, detail), unsafe_allow_html=True)
 
-        if not image_arrays:
-            st.error("None of the selected images could be analyzed.")
-            st.stop()
+    # ---- Stage 1: read and resize every image ------------------------
+    show_loader(0, 2, f"Starting with {total_files} image(s)")
 
+    for index, uploaded_file in enumerate(files_to_analyze, start=1):
+        show_loader(
+            0,
+            2 + 38 * (index - 1) / total_files,
+            f"Image {index} of {total_files} · {uploaded_file.name}",
+        )
         try:
-            predictions = predict_images(image_arrays)
+            image_arrays.append(preprocess_image(uploaded_file))
+            valid_files.append(uploaded_file)
         except Exception as error:
-            st.error("Something went wrong during analysis.")
-            st.code(str(error))
-            st.stop()
+            failed_files.append({
+                "Filename": uploaded_file.name,
+                "Error": str(error),
+            })
+
+    if not image_arrays:
+        loader.empty()
+        st.error("None of the selected images could be analyzed.")
+        st.stop()
+
+    # ---- Stage 2: run the model --------------------------------------
+    show_loader(1, 40, "Warming up the model, the first run can take a few seconds")
+
+    def on_predict_progress(done, total):
+        show_loader(
+            1,
+            40 + 52 * done / total,
+            f"Analyzed {done} of {total} image(s)",
+        )
+
+    try:
+        predictions = predict_images(image_arrays, on_progress=on_predict_progress)
+    except Exception as error:
+        loader.empty()
+        st.error("Something went wrong during analysis.")
+        st.code(str(error))
+        st.stop()
+
+    # ---- Stage 3: build results --------------------------------------
+    show_loader(2, 94, "Putting the results together")
 
     result_rows = [
         {
@@ -794,7 +1130,12 @@ if files_to_analyze and analyze_clicked:
     st.session_state["betta_files"] = valid_files
     st.session_state["betta_failed_files"] = failed_files
 
-    st.toast("Analysis complete")
+    # Short "done" frame so the finish feels intentional, then remove the panel
+    show_loader(len(LOADER_STAGES), 100, "Your results are ready")
+    time.sleep(0.6)
+    loader.empty()
+
+    st.toast("Analysis complete", icon="✅")
 
 
 # =====================================================================
@@ -989,4 +1330,3 @@ with st.expander("About BettaVision"):
         st.write(f"- **{item['name']} ({item['code']})**: {item['subtitle']}")
 
     st.caption(f"Model input size: {image_width} × {image_height} pixels")
-    
