@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 
 import streamlit as st
 import numpy as np
@@ -1474,7 +1474,7 @@ with st.expander("About BettaVision"):
     st.caption(
         f"Model input size: {image_width} × {image_height} pixels"
     )
-=======
+
 
 import streamlit as st
 import numpy as np
@@ -2950,4 +2950,3 @@ with st.expander("About BettaVision"):
     st.caption(
         f"Model input size: {image_width} × {image_height} pixels"
     )
->>>>>>> 2ede3f20e70ba67a2ba2961605e83c1d78f9e22e
